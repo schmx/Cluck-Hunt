@@ -5,8 +5,9 @@
 ;;; This is a really fun game to play.
 ;;; You need a joystick!
 ;;;
-;;; TODO: Make the crosshairs move
-;;; TODO: Make a pause function + pause-screen
+;;; TODO: Make the crosshairs move.
+;;; TODO: Add some chickens.
+;;; TODO: Make a pause function + pause-screen.
 ;;;
 
 (in-package :cluck-hunt)
@@ -93,8 +94,7 @@
     ;; Display text.
     (loop for line in (screen-text screen)
 	  for y from 25 by 25
-	  doing (draw-string-solid-* line
-		     0 y)))
+	  doing (draw-string-solid-* line 0 y)))
   (update-display))
 
 (defun init-video ()
@@ -113,15 +113,14 @@
 (defun cluck-hunt ()
   (format t "Hello World from Cluck Hunt. Hope you have a working joystick!~%")
   (with-init (sdl-init-video sdl-init-joystick)
-    (let ((num-stick (num-joysticks)))
-      (unless (< num-stick 1)
-	;; We have joystick.
-	(setf *joystick-device*
-	      (sdl-cffi::sdl-joystick-open *joystick-dev*)) ; TODO Add error check.
-	(load-data)
-	(init-video)
-	(display &start-screen&)
-	(wait-button)
-	(draw-surface *background-gfx*)
-	(update-display)
-	(event-loop)))))
+    (unless (< (num-joysticks) 1)
+      ;; We have joystick.
+      (setf *joystick-device*
+	    (sdl-cffi::sdl-joystick-open *joystick-dev*)) ; TODO Add error check.
+      (load-data)
+      (init-video)
+      (display &start-screen&)
+      (wait-button)
+      (draw-surface *background-gfx*)
+      (update-display)
+      (event-loop))))
