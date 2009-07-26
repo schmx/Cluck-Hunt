@@ -4,12 +4,41 @@
 
 (in-package :cluck-hunt)
 
+(defvar *joystick-device* nil)
+
+(defvar *crosshairs-x* 320)
+(defvar *crosshairs-y* 240)
+
 (defun wait-button ()
   (with-events (:wait)
     (:joy-button-down-event ()
      (return-from wait-button))))
 
+(defun in-range (n lower upper)
+  (and (>= n lower)
+       (<= n upper)))
+
+
+(defun move-crosshairs (axis value)
+  (let ((pixels (round value 10000)))
+    ;; TODO: Add some range check to this madness!
+    (cond
+      ((= axis *joy-x-axis*)
+       (let ((new-x (+ *crosshairs-x* pixels)))
+	 (when (in-range new-x 20 620)
+	   (setf *crosshairs-x* new-x))))
+      ((= axis *joy-y-axis*)
+       (let ((new-y (+ *crosshairs-y* pixels)))
+	 (when (in-range new-y 20 300)
+	   (setf *crosshairs-y* new-y)))))))
+
+(defun get-joy-axes ()
+  (let ((x (sdl-cffi::sdl-joystick-get-axis *joystick-device* 3))
+	(y (sdl-cffi::sdl-joystick-get-axis *joystick-device* 4)))
+    (format t "x:~d y:~d~%~%" x y)))
+
 (defun event-loop ()
+  (setf (sdl:frame-rate) 30)
   (with-events (:poll)
     (:quit-event () t)
     (:video-expose-event (sdl:update-display))
@@ -19,11 +48,11 @@
     (:JOY-BUTTON-DOWN-EVENT (:WHICH WHICH :BUTTON BUTTON :STATE STATE)
 	(declare (ignorable which button state))
 	(format t "pew pew!~%"))
-    (:JOY-AXIS-MOTION-EVENT (:WHICH WHICH :AXIS AXIS :VALUE VALUE)
-			    (format t "which: ~d  axis:~d   value:~d~%" which axis value))
     (:idle ()
+       (get-joy-axes)   
 	   ;; quack quack!!
-	   )))
+	   )
+    ))
 
 (defstruct screen
   title
@@ -71,7 +100,8 @@
     (let ((num-stick (num-joysticks)))
       (unless (< num-stick 1)
 	;; we have joystick.
-	(sdl-cffi::sdl-joystick-open *joystick-dev*) ; TODO add error check
+	(setf *joystick-device*
+	      (sdl-cffi::sdl-joystick-open *joystick-dev*)) ; TODO add error check
 	(init-video)
 	(display &start-screen&)
 	(wait-button)
