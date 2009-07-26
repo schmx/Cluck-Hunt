@@ -6,6 +6,7 @@
   :components ((:file "package")
 	       (:file "configuration")
 	       (:file "cluck-hunt"))
-  :depends-on (:lispbuilder-sdl)
+  :depends-on (:lispbuilder-sdl
+	       :lispbuilder-sdl-image)
 ;  :depends-on (#+nil :cl-ppcre)
   )

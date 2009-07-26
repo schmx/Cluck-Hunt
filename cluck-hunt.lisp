@@ -1,6 +1,14 @@
 ;;; -*- mode: lisp; indent-tabs: nil -*-
 
 ;;; CLUCK HUNT
+;;;
+;;; This is a really fun game to play.
+;;; You need a joystick!
+;;;
+;;; TODO: Draw level background
+;;; TODO: Make the crosshairs move
+;;; TODO: Make a pause function + pause-screen
+;;;
 
 (in-package :cluck-hunt)
 
@@ -8,6 +16,7 @@
 
 (defvar *crosshairs-x* 320)
 (defvar *crosshairs-y* 240)
+(defvar *crosshair-gfx* nil)
 
 (defun wait-button ()
   (with-events (:wait)
@@ -18,19 +27,17 @@
   (and (>= n lower)
        (<= n upper)))
 
-
 (defun move-crosshairs (axis value)
   (let ((pixels (round value 10000)))
-    ;; TODO: Add some range check to this madness!
-    (cond
-      ((= axis *joy-x-axis*)
-       (let ((new-x (+ *crosshairs-x* pixels)))
-	 (when (in-range new-x 20 620)
-	   (setf *crosshairs-x* new-x))))
-      ((= axis *joy-y-axis*)
-       (let ((new-y (+ *crosshairs-y* pixels)))
-	 (when (in-range new-y 20 300)
-	   (setf *crosshairs-y* new-y)))))))
+    ;; Move the crosshairs if possible.
+    (macrolet ((update (var max min)
+		 `(let ((new (+ ,var pixels)))
+		    (when (in-range new ,max ,min))
+		    (setf ,var new))))
+      (cond ((= axis *joy-x-axis*)
+	     (update *crosshairs-x* 20 620))
+	    ((= axis *joy-y-axis*)
+	     (update *crosshairs-y* 20 300))))))
 
 (defun get-joy-axes ()
   (let ((x (sdl-cffi::sdl-joystick-get-axis *joystick-device* 3))
@@ -51,8 +58,7 @@
     (:idle ()
        (get-joy-axes)   
 	   ;; quack quack!!
-	   )
-    ))
+	   )))
 
 (defstruct screen
   title
@@ -77,38 +83,44 @@
 	   ""
 	   "                        Tap PEW!PEW!PEW! to start.")))
 
+
 (defun display (screen)
   (with-color (col *red*)
+    ;; Display title.
     (draw-string-solid-* (screen-title &start-screen&) 0 0))
   (with-color (col *white*)
+    ;; Display text.
     (loop for line in (screen-text screen)
 	  for y from 25 by 25
 	  doing (draw-string-solid-* line
 		     0 y)))
   (update-display))
 
-
 (defun init-video ()
   (window 640 480 :bpp 16
-	  :title-caption "Cluck hunt!")
+	  :title-caption "Cluck hunt!"
+	  :flags '(sdl-doublebuf #|sdl-fullscreen|#))
   (setf *default-font*
 	(sdl:initialise-default-font sdl:*font-10x20*)))
 
+(defun load-data ()
+  (setf *crosshair-gfx*
+	(load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/crosshairs.gif"))
+  (inspect *crosshair-gfx*))
+
 (defun cluck-hunt ()
-  (format t "Hello World from Cluck Hunt.~%")
+  (format t "Hello World from Cluck Hunt. Hope you have a working joystick!~%")
   (with-init (sdl-init-video sdl-init-joystick)
     (let ((num-stick (num-joysticks)))
       (unless (< num-stick 1)
-	;; we have joystick.
+	;; We have joystick.
 	(setf *joystick-device*
-	      (sdl-cffi::sdl-joystick-open *joystick-dev*)) ; TODO add error check
+	      (sdl-cffi::sdl-joystick-open *joystick-dev*)) ; TODO Add error check.
+	(load-data)
 	(init-video)
 	(display &start-screen&)
 	(wait-button)
 	(update-display)
-	
-	(event-loop))
-      ))
-    
-)
+	(event-loop)))))
+
 
