@@ -5,7 +5,6 @@
 ;;; This is a really fun game to play.
 ;;; You need a joystick!
 ;;;
-;;; TODO: Draw level background
 ;;; TODO: Make the crosshairs move
 ;;; TODO: Make a pause function + pause-screen
 ;;;
@@ -17,6 +16,8 @@
 (defvar *crosshairs-x* 320)
 (defvar *crosshairs-y* 240)
 (defvar *crosshair-gfx* nil)
+
+(defvar *background-gfx* nil)
 
 (defun wait-button ()
   (with-events (:wait)
@@ -106,7 +107,8 @@
 (defun load-data ()
   (setf *crosshair-gfx*
 	(load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/crosshairs.gif"))
-  (inspect *crosshair-gfx*))
+  (setf *background-gfx*
+	(load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/background.gif")))
 
 (defun cluck-hunt ()
   (format t "Hello World from Cluck Hunt. Hope you have a working joystick!~%")
@@ -120,7 +122,6 @@
 	(init-video)
 	(display &start-screen&)
 	(wait-button)
+	(draw-surface *background-gfx*)
 	(update-display)
 	(event-loop)))))
-
-
