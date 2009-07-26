@@ -1,5 +1,5 @@
 ;;; -*- mode: lisp; indent-tabs: nil -*-
 
 (defpackage :cluck-hunt
-  (:use :cl)
-  (:export #:test))
+  (:use :lispbuilder-sdl :cl)
+  (:export #:cluck-hunt))
