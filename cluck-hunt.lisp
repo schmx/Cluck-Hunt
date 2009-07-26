@@ -5,7 +5,7 @@
 ;;; This is a really fun game to play.
 ;;; You need a joystick!
 ;;;
-;;; TODO: Make the crosshairs move.
+;;; TODO: Make the crosshairs transparent.
 ;;; TODO: Add some chickens.
 ;;; TODO: Make a pause function + pause-screen.
 ;;;
@@ -14,9 +14,13 @@
 
 (defvar *joystick-device* nil)
 
-(defvar *crosshairs-x* 320)
-(defvar *crosshairs-y* 240)
-(defvar *crosshair-gfx* nil)
+(defstruct entity 
+  x
+  y
+  gfx)
+
+(defvar &crosshairs&
+  (make-entity :x 320 :y 240 :gfx nil))
 
 (defvar *background-gfx* nil)
 
@@ -29,22 +33,34 @@
   (and (>= n lower)
        (<= n upper)))
 
-(defun move-crosshairs (axis value)
-  (let ((pixels (round value 10000)))
+(defun move-crosshairs (x y)
+  (let ((x-pixels (round x 10000))
+	(y-pixels (round y 10000)))
     ;; Move the crosshairs if possible.
-    (macrolet ((update (var max min)
-		 `(let ((new (+ ,var pixels)))
-		    (when (in-range new ,max ,min))
-		    (setf ,var new))))
-      (cond ((= axis *joy-x-axis*)
-	     (update *crosshairs-x* 20 620))
-	    ((= axis *joy-y-axis*)
-	     (update *crosshairs-y* 20 300))))))
+
+    (macrolet ((update (loc pixels min max)
+		 `(let ((new (+ ,loc ,pixels)))
+		    (when (in-range new ,min ,max)
+		      (setf ,loc new)))))
+      (update (entity-x &crosshairs&) x-pixels 20 620)
+      (update (entity-y &crosshairs&) y-pixels 20 300))))
 
 (defun get-joy-axes ()
   (let ((x (sdl-cffi::sdl-joystick-get-axis *joystick-device* 3))
 	(y (sdl-cffi::sdl-joystick-get-axis *joystick-device* 4)))
-    (format t "x:~d y:~d~%~%" x y)))
+    (values x y)))
+
+(defun draw (entity)
+  ;; TODO: store old surface, update rectangle.
+  (draw-surface-at-*
+   (entity-gfx entity)
+   (entity-x entity)
+   (entity-y entity)))
+
+(defun update-joystick ()
+  (multiple-value-bind (x y)
+      (get-joy-axes)
+    (move-crosshairs x y)))
 
 (defun event-loop ()
   (setf (sdl:frame-rate) 30)
@@ -58,7 +74,10 @@
 	(declare (ignorable which button state))
 	(format t "pew pew!~%"))
     (:idle ()
-       (get-joy-axes)   
+        (draw-surface *background-gfx*)
+        (draw &crosshairs&)
+        (update-display)
+	(update-joystick)
 	   ;; quack quack!!
 	   )))
 
@@ -105,7 +124,7 @@
 	(sdl:initialise-default-font sdl:*font-10x20*)))
 
 (defun load-data ()
-  (setf *crosshair-gfx*
+  (setf (entity-gfx &crosshairs&)
 	(load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/crosshairs.gif"))
   (setf *background-gfx*
 	(load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/background.gif")))
@@ -121,6 +140,4 @@
       (init-video)
       (display &start-screen&)
       (wait-button)
-      (draw-surface *background-gfx*)
-      (update-display)
       (event-loop))))
