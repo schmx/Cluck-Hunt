@@ -85,10 +85,15 @@
     (:quit-event () t)
     (:video-expose-event (sdl:update-display))
     (:KEY-DOWN-EVENT (:key key)
+	 ;; TODO: 2. Let's make a case.
 	 (when (key= key :sdl-key-escape)
-	   (push-quit-event)))
+	   (push-quit-event))
+	 (when (key= key :sdl-key-space)
+	   ;; TODO: call fire.
+	   (format t "pew pew!~%")))
     (:JOY-BUTTON-DOWN-EVENT (:WHICH WHICH :BUTTON BUTTON :STATE STATE)
 	(declare (ignorable which button state))
+	;; TODO: call fire.
 	(format t "pew pew!~%"))
     (:idle ()
         (draw-surface *background-gfx*)
