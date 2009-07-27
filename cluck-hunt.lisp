@@ -154,24 +154,28 @@
   (setf *default-font*
  	(sdl:initialise-default-font sdl:*font-10x20*)))
 
+(defun image (name)
+  (merge-pathnames *data-path* name))
+
 (defun load-bird-gfx ()
+  ;; TODO: Factor this. (:
   (let ((a
-	 (load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/bird-left1.png"))
+	 (load-image (image "bird-left1.png")))
 	(b
-	 (load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/bird-left2.png"))
+	 (load-image (image "bird-left2.png")))
 	(c
-	 (load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/bird-right1.png"))
+	 (load-image (image "bird-right1.png")))
 	(d
-	 (load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/bird-right2.png")))
-    (setf *bird-gfxs* (cons (cons a b)
-			    (cons c d)))))
+	 (load-image (image "bird-right2.png"))))
+    (setf *bird-gfxs* (list (list a b)
+			    (list c d)))))
 
 (defun load-data ()
   (setf (entity-gfx &crosshairs&)
-	(load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/crosshairs.png"))
+	(load-image (image "crosshairs.png")))
   (enable-alpha t :surface (entity-gfx &crosshairs&))
   (setf *background-gfx*
-	(load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/background.gif"))
+	(load-image (image "background.gif")))
   (load-bird-gfx))
 
 (defun cluck-hunt ()

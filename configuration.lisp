@@ -2,6 +2,13 @@
 
 (in-package :cluck-hunt)
 
+;;;
+;;; *data-path* to be set to where
+;;; de graphics is stored.
+;;;
+
+(defvar *data-path*
+  "/home/marcus/src/clbuild/cluck-hunt/graphics/")
 
 (defvar *joystick-dev* 0 "Joystick device number to use.")
 
