@@ -130,7 +130,6 @@
 		       (cadadr *bird-gfxs*))
 		(progn (setf *bird-frame* t)
 		       (caadr *bird-gfxs*))))))
-
 (defun bird-is-going-somewhere! ()
   "Move &bird& towards destination, and animates.."
   ;; TODO Factor it up.
@@ -141,9 +140,7 @@
 	       *bird-speed*
 	       (- *bird-speed*))))
     (move &bird& x y)
-    (bird-flaps-its-wings-or-falls-down! x)
-    ))
-
+    (bird-flaps-its-wings-or-falls-down! x)))
 
 (defun update-bird ()
   (when (null &bird&)
@@ -155,12 +152,7 @@
 	      *bird-destination-x*
 	      *bird-destination-y*)
       (bird-has-wanderlust!))
-  (bird-is-going-somewhere!)
-  
-  ;; TODO
-  ;; set graphics (direction + frame)
-  )
-
+  (bird-is-going-somewhere!))
 
 (defun event-loop ()
   (setf (sdl:frame-rate) 30)
