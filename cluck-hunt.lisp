@@ -7,12 +7,13 @@
 ;;;
 ;;; TODO: Add some chickens.
 ;;; TODO: Make a pause function + pause-screen.
+;;; TODO: Add keyboard support.
 ;;;
 
 (in-package :cluck-hunt)
 
 (defvar *joystick-device* nil)
-
+(defvar *joystick-available* nil)
 (defstruct entity 
   x
   y
@@ -26,6 +27,8 @@
 (defun wait-button ()
   (with-events (:wait)
     (:joy-button-down-event ()
+     (return-from wait-button))
+    (:key-down-event ()
      (return-from wait-button))))
 
 (defun in-range (n lower upper)
@@ -54,14 +57,28 @@
    (entity-x entity)
    (entity-y entity)))
 
-(defun update-joystick ()
-  (multiple-value-bind (x y)
+(defun get-keyboard ()
+  ;; TODO This function is in serious need of
+  ;;      factoring.
+  (let ((x (+ (if (get-key-state :sdl-key-left)
+		  -32767 0)
+	      (if (get-key-state :sdl-key-right)
+		  32767 0)))
+	(y (+ (if (get-key-state :sdl-key-up)
+		  -32767 0)
+	      (if (get-key-state :sdl-key-down)
+		  32767 0))))
+    (values x y)))
+
+(defun get-player-input ()
+  (if  (null *joystick-available*)
       (get-joy-axes)
-    (move &crosshairs& x y))
-;  (multiple-value-bind (x y)
-;     get chicken movement 
-;     move  )
-  )
+      (get-keyboard)))
+
+(defun update-player ()
+  (multiple-value-bind (x y)
+      (get-player-input)
+    (move &crosshairs& x y)))
 
 (defun event-loop ()
   (setf (sdl:frame-rate) 30)
@@ -78,7 +95,7 @@
         (draw-surface *background-gfx*)
         (draw &crosshairs&)
         (update-display)
-	(update-joystick)
+	(update-player)
 	   ;; quack quack!!
 	   )))
 
@@ -133,12 +150,14 @@
 (defun cluck-hunt ()
   (format t "Hello World from Cluck Hunt. Hope you have a working joystick!~%")
   (with-init (sdl-init-video sdl-init-joystick)
+    (enable-key-repeat nil nil)
     (unless (< (num-joysticks) 1)
       ;; We have joystick.
       (setf *joystick-device*
-	    (sdl-cffi::sdl-joystick-open *joystick-dev*)) ; TODO Add error check.
-      (load-data)
-      (init-video)
-      (display &start-screen&)
-      (wait-button)
-      (event-loop))))
+	    (sdl-cffi::sdl-joystick-open *joystick-dev*))
+      (setf *joystick-available* t))
+    (load-data)
+    (init-video)
+    (display &start-screen&)
+    (wait-button)
+    (event-loop)))
