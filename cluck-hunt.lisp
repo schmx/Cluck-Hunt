@@ -7,7 +7,6 @@
 ;;;
 ;;; TODO: Add some chickens.
 ;;; TODO: Make a pause function + pause-screen.
-;;; TODO: Add keyboard support.
 ;;;
 
 (in-package :cluck-hunt)
@@ -71,7 +70,7 @@
     (values x y)))
 
 (defun get-player-input ()
-  (if  (null *joystick-available*)
+  (if *joystick-available*
       (get-joy-axes)
       (get-keyboard)))
 
