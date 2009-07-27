@@ -33,17 +33,16 @@
   (and (>= n lower)
        (<= n upper)))
 
-(defun move-crosshairs (x y)
+(defun move (entity x y)
+  ;; Move ENTITY in X/Y if allowed.
   (let ((x-pixels (round x 10000))
 	(y-pixels (round y 10000)))
-    ;; Move the crosshairs if possible.
-
     (macrolet ((update (loc pixels min max)
 		 `(let ((new (+ ,loc ,pixels)))
 		    (when (in-range new ,min ,max)
 		      (setf ,loc new)))))
-      (update (entity-x &crosshairs&) x-pixels 20 620)
-      (update (entity-y &crosshairs&) y-pixels 20 300))))
+      (update (entity-x entity) x-pixels 20 620)
+      (update (entity-y entity) y-pixels 20 4600))))
 
 (defun get-joy-axes ()
   (let ((x (sdl-cffi::sdl-joystick-get-axis *joystick-device* 3))
@@ -51,7 +50,6 @@
     (values x y)))
 
 (defun draw (entity)
-  ;; TODO: store old surface, update rectangle.
   (draw-surface-at-*
    (entity-gfx entity)
    (entity-x entity)
@@ -60,7 +58,11 @@
 (defun update-joystick ()
   (multiple-value-bind (x y)
       (get-joy-axes)
-    (move-crosshairs x y)))
+    (move &crosshairs& x y))
+;  (multiple-value-bind (x y)
+;     get chicken movement 
+;     move  )
+  )
 
 (defun event-loop ()
   (setf (sdl:frame-rate) 30)
