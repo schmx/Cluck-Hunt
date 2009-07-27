@@ -5,14 +5,18 @@
 ;;; This is a really fun game to play.
 ;;; You need a joystick!
 ;;;
+;;; TODO: Un-hardcode the pathnames for load-image.
 ;;; TODO: Add some chickens.
 ;;; TODO: Make a pause function + pause-screen.
+;;; TODO: Fix the stupid keyboard handling!
+;;;       fire + two direction keys seem to malfunction :)
 ;;;
 
 (in-package :cluck-hunt)
 
 (defvar *joystick-device* nil)
 (defvar *joystick-available* nil)
+
 (defstruct entity 
   x
   y
@@ -20,6 +24,12 @@
 
 (defvar &crosshairs&
   (make-entity :x 320 :y 240 :gfx nil))
+
+(defvar &bird& nil)
+(defvar *bird-speed* nil "Average air speed velocity.")
+(defvar *bird-destination* nil)
+(defvar *bird-frame* nil)
+(defvar *bird-gfxs* nil)
 
 (defvar *background-gfx* nil)
 
@@ -85,7 +95,7 @@
     (:quit-event () t)
     (:video-expose-event (sdl:update-display))
     (:KEY-DOWN-EVENT (:key key)
-	 ;; TODO: 2. Let's make a case.
+	 ;; TODO: move :sdl-key-space into :idle
 	 (when (key= key :sdl-key-escape)
 	   (push-quit-event))
 	 (when (key= key :sdl-key-space)
@@ -144,12 +154,25 @@
   (setf *default-font*
  	(sdl:initialise-default-font sdl:*font-10x20*)))
 
+(defun load-bird-gfx ()
+  (let ((a
+	 (load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/bird-left1.png"))
+	(b
+	 (load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/bird-left2.png"))
+	(c
+	 (load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/bird-right1.png"))
+	(d
+	 (load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/bird-right2.png")))
+    (setf *bird-gfxs* (cons (cons a b)
+			    (cons c d)))))
+
 (defun load-data ()
   (setf (entity-gfx &crosshairs&)
 	(load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/crosshairs.png"))
   (enable-alpha t :surface (entity-gfx &crosshairs&))
   (setf *background-gfx*
-	(load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/background.gif")))
+	(load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/background.gif"))
+  (load-bird-gfx))
 
 (defun cluck-hunt ()
   (format t "Hello World from Cluck Hunt. Hope you have a working joystick!~%")
