@@ -5,7 +5,9 @@
 ;;; This is a really fun game to play.
 ;;; You need a joystick!
 ;;;
-;;; TODO: Make the birds fly around, flapping its wings.
+;;; TODO: Add score, timer, and killing of poultry.
+;;; TODO: Add more frames to the birds. Needs rewrite of
+;;;       BIRDS-FLAPS-ITS-WINGS-OR-FALLS-DOWN.
 ;;; TODO: Make a pause function + pause-screen.
 ;;; TODO: Fix the stupid keyboard handling!
 ;;;       fire + two direction keys seem to malfunction :)
@@ -26,7 +28,8 @@
 
 (defvar &bird& nil)
 (defvar *bird-speed* nil "Average air speed velocity.")
-(defvar *bird-destination* nil)
+(defvar *bird-destination-x* nil)
+(defvar *bird-destination-y* nil)
 (defvar *bird-frame* nil)
 (defvar *bird-gfxs* nil)
 
@@ -88,19 +91,76 @@
       (get-player-input)
     (move &crosshairs& x y)))
 
+(defun random-x ()
+  (+ 20 (random 600)))
+(defun random-y ()
+  (+ 20 (random 380)))
+(defun fuzzy= (n1 n2)
+  (in-range n1 (- n2 10) (+ n2 10)))
+(defun fuzzy-at-xy? (entity x y)
+  (and
+   (fuzzy= (entity-x entity) x)
+   (fuzzy= (entity-y entity) y)))
+
 (defun hatch-an-egg ()
-  (make-entity :x (+ 20 (random 600))
-	       :y (+ 20 (random 440))
+  "Creates a new bird."
+  (make-entity :x (random-x)
+	       :y (random-y)
 	       :gfx (caar *bird-gfxs*)))
+(defun bird-has-wanderlust! ()
+  "Sets up a new destination for bird."
+  (setf *bird-destination-x* (random-x))
+  (setf *bird-destination-y* (random-y)))
+(defun african-or-european-swallow? ()
+  "Sets speed of bird."
+  (setf *bird-speed* (+ 10000 (random 30000))))
+(defun bird-flaps-its-wings-or-falls-down! (x)
+  "Animate ze bird by settin gfx."
+  ;; TODO This is the most beautiful piece of
+  ;;      code ever. TODO is to never touch it.
+  (setf (entity-gfx &bird&)
+	(if (> 0 x)
+	    (if *bird-frame*
+		(progn (setf *bird-frame* nil)
+		       (cadar *bird-gfxs*))
+		(progn (setf *bird-frame* t)
+		       (caar *bird-gfxs*)))
+	    (if *bird-frame*
+		(progn (setf *bird-frame* nil)
+		       (cadadr *bird-gfxs*))
+		(progn (setf *bird-frame* t)
+		       (caadr *bird-gfxs*))))))
+
+(defun bird-is-going-somewhere! ()
+  "Move &bird& towards destination, and animates.."
+  ;; TODO Factor it up.
+  (let ((x (if (< (entity-x &bird&) *bird-destination-x*)
+	       *bird-speed*
+	       (- *bird-speed*)))
+	(y (if (< (entity-y &bird&) *bird-destination-y*)
+	       *bird-speed*
+	       (- *bird-speed*))))
+    (move &bird& x y)
+    (bird-flaps-its-wings-or-falls-down! x)
+    ))
+
 
 (defun update-bird ()
   (when (null &bird&)
     ;; Thar be no bird!
-    (setf &bird& (hatch-an-egg)))
+    (setf &bird& (hatch-an-egg))
+    (bird-has-wanderlust!)
+    (african-or-european-swallow?))
+  (when (fuzzy-at-xy? &bird& 
+	      *bird-destination-x*
+	      *bird-destination-y*)
+      (bird-has-wanderlust!))
+  (bird-is-going-somewhere!)
+  
   ;; TODO
-  ;; Make up a destination and
   ;; set graphics (direction + frame)
   )
+
 
 (defun event-loop ()
   (setf (sdl:frame-rate) 30)
@@ -120,9 +180,9 @@
 	(format t "pew pew!~%"))
     (:idle ()
         (draw-surface *background-gfx*)
-        (draw &crosshairs&)
 	(update-bird)
 	(draw &bird&)
+        (draw &crosshairs&)
         (update-display)
 	(update-player)  ; Update needs factoring!
 	)))
