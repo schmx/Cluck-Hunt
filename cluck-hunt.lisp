@@ -43,7 +43,7 @@
 		    (when (in-range new ,min ,max)
 		      (setf ,loc new)))))
       (update (entity-x entity) x-pixels 20 620)
-      (update (entity-y entity) y-pixels 20 4600))))
+      (update (entity-y entity) y-pixels 20 460))))
 
 (defun get-joy-axes ()
   (let ((x (sdl-cffi::sdl-joystick-get-axis *joystick-device* 3))
