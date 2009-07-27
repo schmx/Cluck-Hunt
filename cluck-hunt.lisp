@@ -5,7 +5,6 @@
 ;;; This is a really fun game to play.
 ;;; You need a joystick!
 ;;;
-;;; TODO: Make the crosshairs transparent.
 ;;; TODO: Add some chickens.
 ;;; TODO: Make a pause function + pause-screen.
 ;;;
@@ -71,7 +70,7 @@
     (:video-expose-event (sdl:update-display))
     (:KEY-DOWN-EVENT (:key key)
 	 (when (key= key :sdl-key-escape)
-	   (sdl:push-quit-event)))
+	   (push-quit-event)))
     (:JOY-BUTTON-DOWN-EVENT (:WHICH WHICH :BUTTON BUTTON :STATE STATE)
 	(declare (ignorable which button state))
 	(format t "pew pew!~%"))
@@ -106,7 +105,6 @@
 	   ""
 	   "                        Tap PEW!PEW!PEW! to start.")))
 
-
 (defun display (screen)
   (with-color (col *red*)
     ;; Display title.
@@ -123,11 +121,12 @@
 	  :title-caption "Cluck hunt!"
 	  :flags '(sdl-doublebuf #|sdl-fullscreen|#))
   (setf *default-font*
-	(sdl:initialise-default-font sdl:*font-10x20*)))
+ 	(sdl:initialise-default-font sdl:*font-10x20*)))
 
 (defun load-data ()
   (setf (entity-gfx &crosshairs&)
-	(load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/crosshairs.gif"))
+	(load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/crosshairs.png"))
+  (enable-alpha t :surface (entity-gfx &crosshairs&))
   (setf *background-gfx*
 	(load-image "/home/marcus/src/clbuild/source/cluck-hunt/graphics/background.gif")))
 
