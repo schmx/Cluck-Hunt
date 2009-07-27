@@ -5,8 +5,7 @@
 ;;; This is a really fun game to play.
 ;;; You need a joystick!
 ;;;
-;;; TODO: Un-hardcode the pathnames for load-image.
-;;; TODO: Add some chickens.
+;;; TODO: Make the birds fly around, flapping its wings.
 ;;; TODO: Make a pause function + pause-screen.
 ;;; TODO: Fix the stupid keyboard handling!
 ;;;       fire + two direction keys seem to malfunction :)
@@ -89,6 +88,20 @@
       (get-player-input)
     (move &crosshairs& x y)))
 
+(defun hatch-an-egg ()
+  (make-entity :x (+ 20 (random 600))
+	       :y (+ 20 (random 440))
+	       :gfx (caar *bird-gfxs*)))
+
+(defun update-bird ()
+  (when (null &bird&)
+    ;; Thar be no bird!
+    (setf &bird& (hatch-an-egg)))
+  ;; TODO
+  ;; Make up a destination and
+  ;; set graphics (direction + frame)
+  )
+
 (defun event-loop ()
   (setf (sdl:frame-rate) 30)
   (with-events (:poll)
@@ -108,10 +121,11 @@
     (:idle ()
         (draw-surface *background-gfx*)
         (draw &crosshairs&)
+	(update-bird)
+	(draw &bird&)
         (update-display)
-	(update-player)
-	   ;; quack quack!!
-	   )))
+	(update-player)  ; Update needs factoring!
+	)))
 
 (defstruct screen
   title
@@ -151,7 +165,7 @@
   (window 640 480 :bpp 16
 	  :title-caption "Cluck hunt!"
 	  :flags '(sdl-doublebuf #|sdl-fullscreen|#))
-  (setf *default-font*
+   (setf *default-font*
  	(sdl:initialise-default-font sdl:*font-10x20*)))
 
 (defun image (name)
@@ -167,6 +181,10 @@
 	 (load-image (image "bird-right1.png")))
 	(d
 	 (load-image (image "bird-right2.png"))))
+    (enable-alpha t :surface a)
+    (enable-alpha t :surface b)
+    (enable-alpha t :surface c)
+    (enable-alpha t :surface d)
     (setf *bird-gfxs* (list (list a b)
 			    (list c d)))))
 

@@ -8,7 +8,7 @@
 ;;;
 
 (defvar *data-path*
-  "/home/marcus/src/clbuild/cluck-hunt/graphics/")
+  "/home/marcus/src/clbuild/source/cluck-hunt/graphics/")
 
 (defvar *joystick-dev* 0 "Joystick device number to use.")
 
