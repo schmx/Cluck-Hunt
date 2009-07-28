@@ -3,9 +3,11 @@
 ;;; CLUCK HUNT
 ;;;
 ;;; This is a really fun game to play.
-;;; You need a joystick!
+;;; This be an experiment in lispbuilder-sdl joystick handling.
+;;;   Also you can play with the keyboard.
 ;;;
-;;; TODO: Add score, timer, and killing of poultry.
+;;; TODO: Add killing of poultry.
+;;; TODO: Add ammo display.
 ;;; TODO: Add more frames to the birds. Needs rewrite of
 ;;;       BIRDS-FLAPS-ITS-WINGS-OR-FALLS-DOWN.
 ;;; TODO: Make a pause function + pause-screen.
@@ -14,6 +16,8 @@
 ;;;
 
 (in-package :cluck-hunt)
+
+(define-condition game-over (condition) ())
 
 (defvar *joystick-device* nil)
 (defvar *joystick-available* nil)
@@ -25,6 +29,7 @@
 
 (defvar &crosshairs&
   (make-entity :x 320 :y 240 :gfx nil))
+(defvar *ammo* 0)
 
 (defvar &bird& nil)
 (defvar *bird-speed* nil "Average air speed velocity.")
@@ -154,6 +159,25 @@
       (bird-has-wanderlust!))
   (bird-is-going-somewhere!))
 
+(defun bird-is-close-enough? ()
+  ;; offset into middle of bird, compare
+  ;; to crosshairs x/y
+  nil
+  )
+(defun kill-that-bird ()
+  (setf &bird& nil))
+(defun reload-gun ()
+  (setf *ammo* 3))
+(defun bangbangbang ()
+  (unless (<= *ammo* 0)
+    ;; TODO play bang sound
+    (decf *ammo*)
+    (when (bird-is-close-enough?)
+      (kill-that-bird)
+      (reload-gun)))
+  (when (<= *ammo* 0)
+    (signal 'game-over)))
+
 (defun event-loop ()
   (setf (sdl:frame-rate) 30)
   (with-events (:poll)
@@ -164,20 +188,16 @@
 	 (when (key= key :sdl-key-escape)
 	   (push-quit-event))
 	 (when (key= key :sdl-key-space)
-	   ;; TODO: call fire.
-	   (format t "pew pew!~%")))
-    (:JOY-BUTTON-DOWN-EVENT (:WHICH WHICH :BUTTON BUTTON :STATE STATE)
-	(declare (ignorable which button state))
-	;; TODO: call fire.
-	(format t "pew pew!~%"))
+	   (bangbangbang)))
+    (:joy-button-down-event ()
+	(bangbangbang))
     (:idle ()
         (draw-surface *background-gfx*)
 	(update-bird)
 	(draw &bird&)
         (draw &crosshairs&)
         (update-display)
-	(update-player)  ; Update needs factoring!
-	)))
+	(update-player))))
 
 (defstruct screen
   title
@@ -251,14 +271,19 @@
 (defun cluck-hunt ()
   (format t "Hello World from Cluck Hunt. Hope you have a working joystick!~%")
   (with-init (sdl-init-video sdl-init-joystick)
-    (enable-key-repeat nil nil)
-    (unless (< (num-joysticks) 1)
-      ;; We have joystick.
-      (setf *joystick-device*
-	    (sdl-cffi::sdl-joystick-open *joystick-dev*))
-      (setf *joystick-available* t))
-    (load-data)
-    (init-video)
-    (display &start-screen&)
-    (wait-button)
-    (event-loop)))
+    (handler-bind ((game-over #'(lambda (x)
+				  (declare (ignore x))
+				  (format t "Out of ammo! Game over.~%")
+				  (return-from nil))))
+      (enable-key-repeat nil nil)
+      (unless (< (num-joysticks) 1)
+	;; We have joystick.
+	(setf *joystick-device*
+	      (sdl-cffi::sdl-joystick-open *joystick-dev*))
+	(setf *joystick-available* t))
+      (load-data)
+      (init-video)
+      (display &start-screen&)
+      (wait-button)
+      (setf *ammo* 3)
+      (event-loop))))
