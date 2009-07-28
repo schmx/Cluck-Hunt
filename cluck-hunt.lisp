@@ -162,8 +162,15 @@
 (defun bird-is-close-enough? ()
   ;; offset into middle of bird, compare
   ;; to crosshairs x/y
-  nil
-  )
+  (let ((bird-x (+ (entity-x &bird&) 30)) ; middle of bird
+	(bird-y (+ (entity-y &bird&) 20)))
+    (and (in-range (entity-x &crosshairs&)
+		   (- bird-x 25)
+		   (+ bird-x 25))
+	 (in-range (entity-y &crosshairs&)
+		   (- bird-y 15)
+		   (+ bird-y 15)))))
+
 (defun kill-that-bird ()
   (setf &bird& nil))
 (defun reload-gun ()
