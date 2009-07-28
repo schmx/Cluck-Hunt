@@ -6,7 +6,8 @@
 ;;; This be an experiment in lispbuilder-sdl joystick handling.
 ;;;   Also you can play with the keyboard.
 ;;;
-;;; TODO: Add killing of poultry.
+;;; TODO: Birds poop ammo.
+;;; TODO: Add score.
 ;;; TODO: Add ammo display.
 ;;; TODO: Add more frames to the birds. Needs rewrite of
 ;;;       BIRDS-FLAPS-ITS-WINGS-OR-FALLS-DOWN.
@@ -63,8 +64,8 @@
       (update (entity-y entity) y-pixels 20 460))))
 
 (defun get-joy-axes ()
-  (let ((x (sdl-cffi::sdl-joystick-get-axis *joystick-device* 3))
-	(y (sdl-cffi::sdl-joystick-get-axis *joystick-device* 4)))
+  (let ((x (sdl-cffi::sdl-joystick-get-axis *joystick-device* *joy-x-axis*))
+	(y (sdl-cffi::sdl-joystick-get-axis *joystick-device* *joy-y-axis*)))
     (values x y)))
 
 (defun draw (entity)
